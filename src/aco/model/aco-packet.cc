@@ -17,6 +17,7 @@
 
 #include "ns3/address-utils.h"
 #include "ns3/packet.h"
+#include <cstring>
 
 namespace ns3
 {
@@ -665,5 +666,186 @@ operator<<(std::ostream& os, const RerrHeader& h)
     h.Print(os);
     return os;
 }
+//-----------------------------------------------------------------------------
+// FANT
+//-----------------------------------------------------------------------------
+FantHeader::FantHeader()
+    : m_hopCount(0),
+      m_total3dDistance(0.0),
+      m_minPathEnergy(0.0)
+{
+}
+
+NS_OBJECT_ENSURE_REGISTERED(FantHeader);
+
+TypeId
+FantHeader::GetTypeId()
+{
+    static TypeId tid = TypeId("ns3::aco::FantHeader")
+                            .SetParent<Header>()
+                            .SetGroupName("Aco")
+                            .AddConstructor<FantHeader>();
+    return tid;
+}
+
+TypeId
+FantHeader::GetInstanceTypeId() const
+{
+    return GetTypeId();
+}
+
+uint32_t
+FantHeader::GetSerializedSize() const
+{
+    return 4 + 8 + 8 + 4 + 4; // hopCount(4), dist(8), energy(8), dst(4), origin(4)
+}
+
+void
+FantHeader::Serialize(Buffer::Iterator i) const
+{
+    i.WriteHtonU32(m_hopCount);
+    
+    uint64_t distBits;
+    std::memcpy(&distBits, &m_total3dDistance, sizeof(distBits));
+    i.WriteHtonU64(distBits);
+
+    uint64_t energyBits;
+    std::memcpy(&energyBits, &m_minPathEnergy, sizeof(energyBits));
+    i.WriteHtonU64(energyBits);
+
+    WriteTo(i, m_dst);
+    WriteTo(i, m_origin);
+}
+
+uint32_t
+FantHeader::Deserialize(Buffer::Iterator start)
+{
+    Buffer::Iterator i = start;
+    m_hopCount = i.ReadNtohU32();
+    
+    uint64_t distBits = i.ReadNtohU64();
+    std::memcpy(&m_total3dDistance, &distBits, sizeof(m_total3dDistance));
+
+    uint64_t energyBits = i.ReadNtohU64();
+    std::memcpy(&m_minPathEnergy, &energyBits, sizeof(m_minPathEnergy));
+
+    ReadFrom(i, m_dst);
+    ReadFrom(i, m_origin);
+
+    uint32_t dist = i.GetDistanceFrom(start);
+    NS_ASSERT(dist == GetSerializedSize());
+    return dist;
+}
+
+void
+FantHeader::Print(std::ostream& os) const
+{
+    os << "FANT "
+       << " hopCount " << m_hopCount
+       << " total3dDistance " << m_total3dDistance
+       << " minPathEnergy " << m_minPathEnergy
+       << " dst " << m_dst
+       << " origin " << m_origin;
+}
+
+bool
+FantHeader::operator==(const FantHeader& o) const
+{
+    return (m_hopCount == o.m_hopCount &&
+            m_total3dDistance == o.m_total3dDistance &&
+            m_minPathEnergy == o.m_minPathEnergy &&
+            m_dst == o.m_dst &&
+            m_origin == o.m_origin);
+}
+
+std::ostream&
+operator<<(std::ostream& os, const FantHeader& h)
+{
+    h.Print(os);
+    return os;
+}
+
+//-----------------------------------------------------------------------------
+// BANT
+//-----------------------------------------------------------------------------
+BantHeader::BantHeader()
+    : m_pheromoneConcentration(0.0)
+{
+}
+
+NS_OBJECT_ENSURE_REGISTERED(BantHeader);
+
+TypeId
+BantHeader::GetTypeId()
+{
+    static TypeId tid = TypeId("ns3::aco::BantHeader")
+                            .SetParent<Header>()
+                            .SetGroupName("Aco")
+                            .AddConstructor<BantHeader>();
+    return tid;
+}
+
+TypeId
+BantHeader::GetInstanceTypeId() const
+{
+    return GetTypeId();
+}
+
+uint32_t
+BantHeader::GetSerializedSize() const
+{
+    return 8 + 4 + 4; // pheromone(8), dst(4), origin(4)
+}
+
+void
+BantHeader::Serialize(Buffer::Iterator i) const
+{
+    uint64_t pheromoneBits;
+    std::memcpy(&pheromoneBits, &m_pheromoneConcentration, sizeof(pheromoneBits));
+    i.WriteHtonU64(pheromoneBits);
+
+    WriteTo(i, m_dst);
+    WriteTo(i, m_origin);
+}
+
+uint32_t
+BantHeader::Deserialize(Buffer::Iterator start)
+{
+    Buffer::Iterator i = start;
+    uint64_t pheromoneBits = i.ReadNtohU64();
+    std::memcpy(&m_pheromoneConcentration, &pheromoneBits, sizeof(m_pheromoneConcentration));
+
+    ReadFrom(i, m_dst);
+    ReadFrom(i, m_origin);
+
+    uint32_t dist = i.GetDistanceFrom(start);
+    NS_ASSERT(dist == GetSerializedSize());
+    return dist;
+}
+
+void
+BantHeader::Print(std::ostream& os) const
+{
+    os << "BANT "
+       << " pheromoneConcentration " << m_pheromoneConcentration
+       << " dst " << m_dst
+       << " origin " << m_origin;
+}
+
+bool
+BantHeader::operator==(const BantHeader& o) const
+{
+    return (m_pheromoneConcentration == o.m_pheromoneConcentration &&
+            m_dst == o.m_dst &&
+            m_origin == o.m_origin);
+}
+
+std::ostream&
+operator<<(std::ostream& os, const BantHeader& h)
+{
+    h.Print(os);
+    return os;
+}
+
 } // namespace aco
 } // namespace ns3

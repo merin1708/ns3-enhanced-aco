@@ -102,13 +102,17 @@ private:
   bool m_enableBroadcast;
   Time m_discoveryStart;    // To track when a route search begins
   uint32_t m_totalAntsSent; // To track the total number of RREQs (Ants)
-  int m_simulatedQueue
+  int m_simulatedQueue;
+  double m_currentEnergy;
+  double m_esThreshold;
 
-  // IP Layer and Sockets
   Ptr<Ipv4> m_ipv4;
   std::map<Ptr<Socket>, Ipv4InterfaceAddress> m_socketAddresses;
   std::map<Ptr<Socket>, Ipv4InterfaceAddress> m_socketSubnetBroadcastAddresses;
   Ptr<NetDevice> m_lo;
+
+  // Caching for FANTs
+  std::map<std::pair<Ipv4Address, Ipv4Address>, Time> m_fantCache;
 
   // Protocol State Components
   RoutingTable m_routingTable;
@@ -146,6 +150,7 @@ private:
   void SendRerrWhenNoRouteToForward (Ipv4Address dst, uint32_t dstSeqNo, Ipv4Address origin);
   void SendRerrMessage (Ptr<Packet> packet, std::vector<Ipv4Address> precursors);
   void SendTo (Ptr<Socket> socket, Ptr<Packet> packet, Ipv4Address destination);
+  void ScheduleFANTForward(Ptr<Socket> sock, Ptr<Packet> packet);
 
   // Packet Reception
   void RecvAco (Ptr<Socket> socket);

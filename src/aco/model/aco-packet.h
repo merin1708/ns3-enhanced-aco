@@ -653,6 +653,84 @@ class RerrHeader : public Header
  */
 std::ostream& operator<<(std::ostream& os, const RerrHeader&);
 
+//-----------------------------------------------------------------------------
+// FANT (Forward Ant)
+//-----------------------------------------------------------------------------
+class FantHeader : public Header
+{
+  public:
+    FantHeader();
+
+    static TypeId GetTypeId();
+    TypeId GetInstanceTypeId() const override;
+    uint32_t GetSerializedSize() const override;
+    void Serialize(Buffer::Iterator start) const override;
+    uint32_t Deserialize(Buffer::Iterator start) override;
+    void Print(std::ostream& os) const override;
+
+    // Fields
+    void SetHopCount(uint32_t count) { m_hopCount = count; }
+    uint32_t GetHopCount() const { return m_hopCount; }
+
+    void SetTotal3dDistance(double dist) { m_total3dDistance = dist; }
+    double GetTotal3dDistance() const { return m_total3dDistance; }
+
+    void SetMinPathEnergy(double energy) { m_minPathEnergy = energy; }
+    double GetMinPathEnergy() const { return m_minPathEnergy; }
+
+    void SetDst(Ipv4Address a) { m_dst = a; }
+    Ipv4Address GetDst() const { return m_dst; }
+
+    void SetOrigin(Ipv4Address a) { m_origin = a; }
+    Ipv4Address GetOrigin() const { return m_origin; }
+
+    bool operator==(const FantHeader& o) const;
+
+  private:
+    uint32_t m_hopCount; 
+    double m_total3dDistance; 
+    double m_minPathEnergy; 
+    Ipv4Address m_dst;
+    Ipv4Address m_origin;
+};
+
+std::ostream& operator<<(std::ostream& os, const FantHeader&);
+
+//-----------------------------------------------------------------------------
+// BANT (Backward Ant)
+//-----------------------------------------------------------------------------
+class BantHeader : public Header
+{
+  public:
+    BantHeader();
+
+    static TypeId GetTypeId();
+    TypeId GetInstanceTypeId() const override;
+    uint32_t GetSerializedSize() const override;
+    void Serialize(Buffer::Iterator start) const override;
+    uint32_t Deserialize(Buffer::Iterator start) override;
+    void Print(std::ostream& os) const override;
+
+    // Fields
+    void SetPheromoneConcentration(double p) { m_pheromoneConcentration = p; }
+    double GetPheromoneConcentration() const { return m_pheromoneConcentration; }
+
+    void SetDst(Ipv4Address a) { m_dst = a; }
+    Ipv4Address GetDst() const { return m_dst; }
+
+    void SetOrigin(Ipv4Address a) { m_origin = a; }
+    Ipv4Address GetOrigin() const { return m_origin; }
+
+    bool operator==(const BantHeader& o) const;
+
+  private:
+    double m_pheromoneConcentration; 
+    Ipv4Address m_dst;
+    Ipv4Address m_origin;
+};
+
+std::ostream& operator<<(std::ostream& os, const BantHeader&);
+
 } // namespace aco
 } // namespace ns3
 
