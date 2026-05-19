@@ -31,20 +31,33 @@ public:
   static TypeId GetTypeId (void);
   static const uint32_t ACO_PORT;
 
+  // --- UNIFIED ALGORITHM SELECTOR ---
+  enum AlgorithmType {
+      BASIC_ACO = 0,
+      EHACORP = 1,
+      EACO_DE = 2,      // Full Protocol (Security + Energy + Eq 3)
+      ACO_DE_ONLY = 3   // Ablation Study: Equation 3 ONLY (No Security, No Energy)
+  };
+  
+  void SetAlgorithmType(uint32_t type) { m_algoType = type; }
+  uint32_t GetAlgorithmType() const { return m_algoType; }
+  // ----------------------------------
+
   RoutingProtocol ();
   virtual ~RoutingProtocol ();
   virtual void DoDispose ();
 
   // Inherited from Ipv4RoutingProtocol
   virtual Ptr<Ipv4Route> RouteOutput (Ptr<Packet> p, const Ipv4Header &header, Ptr<NetDevice> oif, Socket::SocketErrno &sockerr);
-  // Change this in aco-routing-protocol.h
-virtual bool RouteInput (Ptr<const Packet> p, 
-                         const Ipv4Header &header, 
-                         Ptr<const NetDevice> idev,
-                         const UnicastForwardCallback &ucb,           // Added const &
-                         const MulticastForwardCallback &mcb,         // Added const &
-                         const LocalDeliverCallback &lcb,             // Added const &
-                         const ErrorCallback &ecb);                   // Added const &
+  
+  virtual bool RouteInput (Ptr<const Packet> p, 
+                           const Ipv4Header &header, 
+                           Ptr<const NetDevice> idev,
+                           const UnicastForwardCallback &ucb,           
+                           const MulticastForwardCallback &mcb,         
+                           const LocalDeliverCallback &lcb,             
+                           const ErrorCallback &ecb);                   
+
   virtual void NotifyInterfaceUp (uint32_t interface);
   virtual void NotifyInterfaceDown (uint32_t interface);
   virtual void NotifyAddAddress (uint32_t interface, Ipv4InterfaceAddress address);
@@ -105,6 +118,9 @@ private:
   int m_simulatedQueue;
   double m_currentEnergy;
   double m_esThreshold;
+
+  // ADDED: To store the currently selected algorithm
+  uint32_t m_algoType; 
 
   Ptr<Ipv4> m_ipv4;
   std::map<Ptr<Socket>, Ipv4InterfaceAddress> m_socketAddresses;

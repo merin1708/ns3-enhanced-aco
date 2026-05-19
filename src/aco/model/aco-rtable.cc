@@ -52,8 +52,8 @@ RoutingTableEntry::RoutingTableEntry(Ptr<NetDevice> dev,
       m_reqCount(0),
       m_blackListState(false),
       m_blackListTimeout(Simulator::Now()),
-      m_pheromone(1.0),    // *** ACO ENHANCEMENT: Initial Pheromone ***
-      m_stagnation(0)      // *** ACO ENHANCEMENT: Initial Stagnation ***
+      m_pheromone(1.0),
+      m_stagnation(0)
 {
     m_ipv4Route = Create<Ipv4Route>();
     m_ipv4Route->SetDestination(dst);
@@ -65,6 +65,7 @@ RoutingTableEntry::RoutingTableEntry(Ptr<NetDevice> dev,
 RoutingTableEntry::~RoutingTableEntry()
 {
 }
+
 
 bool
 RoutingTableEntry::InsertPrecursor(Ipv4Address id)
@@ -185,7 +186,7 @@ RoutingTableEntry::Print(Ptr<OutputStreamWrapper> stream, Time::Unit unit /* = T
     gw << m_ipv4Route->GetGateway();
     iface << m_iface.GetLocal();
     expire << std::setprecision(2) << (m_lifeTime - Simulator::Now()).As(unit);
-    
+
     *os << std::setw(16) << dest.str();
     *os << std::setw(16) << gw.str();
     *os << std::setw(16) << iface.str();
@@ -208,8 +209,9 @@ RoutingTableEntry::Print(Ptr<OutputStreamWrapper> stream, Time::Unit unit /* = T
 
     *os << std::setw(16) << expire.str();
     *os << std::setw(8) << m_hops;
-    *os << std::fixed << std::setprecision(2) << m_pheromone << std::endl; // *** ACO ENHANCEMENT: Print Pheromone ***
-    
+    *os << std::fixed << std::setprecision(2) << m_pheromone
+        << std::endl; // *** ACO ENHANCEMENT: Print Pheromone ***
+
     (*os).copyfmt(oldState);
 }
 
@@ -314,7 +316,7 @@ RoutingTable::InvalidateRoutesWithDst(const std::map<Ipv4Address, uint32_t>& unr
     Purge();
     for (auto i = m_ipv4AddressEntry.begin(); i != m_ipv4AddressEntry.end(); ++i)
     {
-        for (auto const& [addr, seq] : unreachable)
+        for (const auto& [addr, seq] : unreachable)
         {
             if ((i->first == addr) && (i->second.GetFlag() == VALID))
             {
@@ -343,7 +345,10 @@ RoutingTable::DeleteAllRoutesFromInterface(Ipv4InterfaceAddress iface)
 void
 RoutingTable::Purge()
 {
-    if (m_ipv4AddressEntry.empty()) return;
+    if (m_ipv4AddressEntry.empty())
+    {
+        return;
+    }
     for (auto i = m_ipv4AddressEntry.begin(); i != m_ipv4AddressEntry.end();)
     {
         if (i->second.GetLifeTime().IsStrictlyNegative())
@@ -368,7 +373,10 @@ RoutingTable::Purge()
 void
 RoutingTable::Purge(std::map<Ipv4Address, RoutingTableEntry>& table) const
 {
-    if (table.empty()) return;
+    if (table.empty())
+    {
+        return;
+    }
     for (auto i = table.begin(); i != table.end();)
     {
         if (i->second.GetLifeTime().IsStrictlyNegative())
@@ -394,7 +402,10 @@ bool
 RoutingTable::MarkLinkAsUnidirectional(Ipv4Address neighbor, Time blacklistTimeout)
 {
     auto i = m_ipv4AddressEntry.find(neighbor);
-    if (i == m_ipv4AddressEntry.end()) return false;
+    if (i == m_ipv4AddressEntry.end())
+    {
+        return false;
+    }
     i->second.SetUnidirectional(true);
     i->second.SetBlacklistTimeout(blacklistTimeout);
     return true;
@@ -418,7 +429,7 @@ RoutingTable::Print(Ptr<OutputStreamWrapper> stream, Time::Unit unit /* = Time::
     *os << std::setw(16) << "Expire";
     *os << std::setw(8) << "Hops";
     *os << "Pheromone" << std::endl; // *** ACO ENHANCEMENT ***
-    for (auto const& [addr, entry] : table)
+    for (const auto& [addr, entry] : table)
     {
         entry.Print(stream, unit);
     }

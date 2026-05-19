@@ -1,4 +1,5 @@
 #include "ns3/aco-helper.h"
+#include "ns3/aco-routing-protocol.h"
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
 #include "ns3/energy-module.h"
@@ -8,6 +9,7 @@
 #include "ns3/network-module.h"
 #include "ns3/wifi-module.h"
 #include "ns3/wifi-radio-energy-model-helper.h"
+#include "ns3/uinteger.h"
 
 using namespace ns3;
 using namespace ns3::energy;
@@ -18,8 +20,10 @@ int
 main(int argc, char* argv[])
 {
     uint32_t nNodes = 30; // Default to 30 nodes as per Paper Table 1
+    std::string algoType = "EACO_DE"; 
     CommandLine cmd;
     cmd.AddValue("nNodes", "Number of drones", nNodes);
+    cmd.AddValue("algo", "Algorithm Name (BASIC_ACO, EHACORP, EACO_DE, ACO_DE_ONLY)", algoType);
     cmd.Parse(argc, argv);
 
     NodeContainer nodes;
@@ -57,7 +61,14 @@ main(int argc, char* argv[])
     // 4. Attach the radio energy model to the Wi-Fi devices and the battery
     DeviceEnergyModelContainer deviceModels = radioEnergyHelper.Install(devices, eContainer);
 
+    uint32_t algoEnum;
+    if (algoType == "BASIC_ACO") algoEnum = aco::RoutingProtocol::BASIC_ACO;
+    else if (algoType == "EHACORP") algoEnum = aco::RoutingProtocol::EHACORP;
+    else if (algoType == "ACO_DE_ONLY") algoEnum = aco::RoutingProtocol::ACO_DE_ONLY;
+    else algoEnum = aco::RoutingProtocol::EACO_DE;
+
     AcoHelper aco;
+    aco.Set("AlgorithmType", UintegerValue(algoEnum));
     InternetStackHelper stack;
     stack.SetRoutingHelper(aco);
     stack.Install(nodes);
